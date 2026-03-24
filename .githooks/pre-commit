@@ -1,0 +1,52 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+# ===========================
+# 1. PHP Syntax Check
+# ===========================
+echo "Checking PHP syntax..."
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "\.php$")
+
+if [ -n "$FILES" ]; then
+    for FILE in $FILES; do
+        php -l "$FILE"
+        if [ $? -ne 0 ]; then
+            echo "PHP syntax error in $FILE"
+            exit 1
+        fi
+    done
+    echo "PHP syntax check passed!"
+else
+    echo "No PHP files to check."
+fi
+
+# ===========================
+# 2. Laravel Pint
+# ===========================
+echo "Running Laravel Pint..."
+
+./vendor/bin/pint --test
+
+if [ $? -ne 0 ]; then
+    echo "Laravel Pint failed! Run './vendor/bin/pint' to fix code style."
+    exit 1
+fi
+
+echo "Pint check passed!"
+
+# ===========================
+# 3. PHP Unit Tests
+# ===========================
+echo "Running tests..."
+
+php artisan test
+
+if [ $? -ne 0 ]; then
+    echo "Tests failed! Fix tests before committing."
+    exit 1
+fi
+
+echo "All checks passed! Committing..."
+exit 0
