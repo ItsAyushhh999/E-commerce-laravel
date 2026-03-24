@@ -9,9 +9,9 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => fake()->word() . ' Tshirt',
+            'name' => fake()->word().' Tshirt',
             'description' => fake()->sentence(),
-            'image'       => null,
+            'image' => null,
         ];
     }
 }

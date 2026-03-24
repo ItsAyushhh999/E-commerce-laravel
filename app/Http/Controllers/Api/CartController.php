@@ -12,11 +12,10 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $cart = Cart::where('user_id', $request->user()->id)
-                    ->with('productvariant.product')
-                    ->get();
+            ->with('productvariant.product')
+            ->get();
 
-        $total = $cart->sum(function ($item)
-        {
+        $total = $cart->sum(function ($item) {
             return $item->productvariant->price * $item->quantity;
         });
 
@@ -26,7 +25,7 @@ class CartController extends Controller
         ]);
     }
 
-    //add to cart
+    // add to cart
     public function add(Request $request)
     {
         $request->validate([
@@ -36,39 +35,36 @@ class CartController extends Controller
 
         $variant = ProductVariant::find($request->product_variant_id);
 
-        //checking for enough stock
-        if($variant->stock < $request->quantity)
-            {
+        // checking for enough stock
+        if ($variant->stock < $request->quantity) {
+            return response()->json([
+                'message' => 'Not enough stock available',
+            ], 400);
+        }
+
+        $cartItem = Cart::where('user_id', $request->user()->id)
+            ->where('product_variant_id', $request->product_variant_id)
+            ->first();
+
+        // for adding item and quantity if already there
+        if ($cartItem) {
+            $newQuantity = $cartItem->quantity + $request->quantity;
+
+            if ($variant->stock < $newQuantity) {
                 return response()->json([
                     'message' => 'Not enough stock available',
                 ], 400);
             }
-        
-        $cartItem = Cart::where('user_id', $request->user()->id)
-                        ->where('product_variant_id', $request->product_variant_id)
-                        ->first();
-        
-        //for adding item and quantity if already there
-        if($cartItem)
-            {
-                $newQuantity = $cartItem->quantity + $request->quantity;
 
-                if($variant->stock < $newQuantity)
-                    {
-                        return response()->json([
-                            'message' => 'Not enough stock available',
-                        ], 400);
-                    }
-                
-                $cartItem->update(['quantity' => $newQuantity]);
+            $cartItem->update(['quantity' => $newQuantity]);
 
-                return response()->json([
-                    'message' => 'Cart updated successfully',
-                    'cart_item' => $cartItem->load('productvariant.product'),
-                ]);
-            }
-        
-        //for new item
+            return response()->json([
+                'message' => 'Cart updated successfully',
+                'cart_item' => $cartItem->load('productvariant.product'),
+            ]);
+        }
+
+        // for new item
         $cartItem = Cart::create([
             'user_id' => $request->user()->id,
             'product_variant_id' => $request->product_variant_id,
@@ -84,16 +80,15 @@ class CartController extends Controller
     public function update(Request $request, $id)
     {
         $cartItem = Cart::where('id', $id)
-                        ->where('user_id', $request->user()->id)
-                        ->first();
-        
-        if(!$cartItem)
-            {
-                return response()->json([
-                    'message' => 'Cart item not found',
-                ], 404);
-            }
-        
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $cartItem) {
+            return response()->json([
+                'message' => 'Cart item not found',
+            ], 404);
+        }
+
         $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
@@ -101,14 +96,13 @@ class CartController extends Controller
         $variant = ProductVariant::find($cartItem->product_variant_id);
         $newQuantity = $cartItem->quantity + $request->quantity;
 
-        if($variant->stock < $request->quantity)
-            {
-                return response()->json([
-                    'message' => 'Not enough stock available',
-                ], 404);
-            }
-        
-        $cartItem->update(['quantity'=> $newQuantity]);
+        if ($variant->stock < $request->quantity) {
+            return response()->json([
+                'message' => 'Not enough stock available',
+            ], 404);
+        }
+
+        $cartItem->update(['quantity' => $newQuantity]);
 
         return response()->json([
             'message' => 'Cart Updated Successfully',
@@ -116,20 +110,19 @@ class CartController extends Controller
         ]);
     }
 
-    //removing item
+    // removing item
     public function remove(Request $request, $id)
-    {   
+    {
         $cartItem = Cart::where('id', $id)
-                        ->where('user_id', $request->user()->id)
-                        ->first();
-        
-        if(!$cartItem)
-            {
-                return response()->json([
-                    'message' => 'Cart item not found',
-                ], 404);
-            }
-        
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (! $cartItem) {
+            return response()->json([
+                'message' => 'Cart item not found',
+            ], 404);
+        }
+
         $cartItem->delete();
 
         return response()->json([
@@ -137,14 +130,14 @@ class CartController extends Controller
         ]);
     }
 
-    //removing 1 item by 1 quantity
+    // removing 1 item by 1 quantity
     public function decreaseQuantity(Request $request, $id)
     {
         $cartItem = Cart::where('id', $id)
-                        ->where('user_id', $request->user()->id)
-                        ->first();
+            ->where('user_id', $request->user()->id)
+            ->first();
 
-        if (!$cartItem) {
+        if (! $cartItem) {
             return response()->json([
                 'message' => 'Cart item not found',
             ], 404);
@@ -159,6 +152,7 @@ class CartController extends Controller
         if ($newQuantity <= 0) {
             // if result is 0 or less, delete the item completely
             $cartItem->delete();
+
             return response()->json([
                 'message' => 'Item removed from cart',
             ]);
@@ -167,7 +161,7 @@ class CartController extends Controller
         $cartItem->update(['quantity' => $newQuantity]);
 
         return response()->json([
-            'message'   => 'Quantity decreased',
+            'message' => 'Quantity decreased',
             'cart_item' => $cartItem->load('productVariant.product'),
         ]);
     }
@@ -176,7 +170,7 @@ class CartController extends Controller
     {
         Cart::where('user_id', $request->user()->id)
             ->delete();
-        
+
         return response()->json([
             'message' => 'Cart cleared',
         ]);

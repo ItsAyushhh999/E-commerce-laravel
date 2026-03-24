@@ -18,7 +18,7 @@ class OrderPlaced extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order Confirmation #' . $this->order->id,
+            subject: 'Order Confirmation #'.$this->order->id,
         );
     }
 
@@ -34,11 +34,11 @@ class OrderPlaced extends Mailable
             ";
         }
 
-        $total     = number_format($this->order->total_price, 2);
-        $date      = $this->order->created_at->format('M d, Y h:i A');
-        $name      = $this->order->user->name;
-        $orderId   = $this->order->id;
-        $status    = ucfirst($this->order->status);
+        $total = number_format($this->order->total_price, 2);
+        $date = $this->order->created_at->format('M d, Y h:i A');
+        $name = $this->order->user->name;
+        $orderId = $this->order->id;
+        $status = ucfirst($this->order->status);
 
         $html = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>

@@ -56,4 +56,3 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:api'])->group(functio
     Route::put('/admin/orders/{id}', [OrderController::class, 'updateStatus']);
     Route::patch('/admin/orders/{id}', [OrderController::class, 'updateStatus']);
 });
-

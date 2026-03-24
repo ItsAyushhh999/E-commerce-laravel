@@ -9,29 +9,29 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    //view all prod
+    // view all prod
     public function index()
     {
         $products = Product::with('variants')->get();
 
         return response()->json($products);
     }
-    
-    //view only one
+
+    // view only one
     public function show($id)
     {
         $product = Product::with('variants')->find($id);
 
-        if(!$product){
+        if (! $product) {
             return response()->json([
                 'message' => 'Product not found',
-            ],404);
+            ], 404);
         }
 
         return response()->json($product);
     }
 
-    //admin - creating product with variant
+    // admin - creating product with variant
     public function store(Request $request)
     {
         $request->validate([
@@ -51,8 +51,8 @@ class ProductController extends Controller
             'image' => $request->image,
         ]);
 
-        foreach($request->variants as $variant){
-            //generating sku
+        foreach ($request->variants as $variant) {
+            // generating sku
             $sku = $this->generateSku($request->name, $variant['color'], $variant['size']);
             $product->variants()->create([
                 'sku' => $sku,
@@ -69,24 +69,24 @@ class ProductController extends Controller
         ], 201);
     }
 
-    //SKU genereate help
+    // SKU genereate help
     private function generateSku($productName, $color, $size)
     {
-        //get initials from product name
+        // get initials from product name
         $initials = collect(explode(' ', strtoupper($productName)))
-                    ->map(fn($word)=>substr($word, 0, 1))
-                    ->implode('');
-        
-        $colorCode =   strtoupper(substr($color, 0, 3));
-        $sizeCode = strtoupper($size); 
+            ->map(fn ($word) => substr($word, 0, 1))
+            ->implode('');
+
+        $colorCode = strtoupper(substr($color, 0, 3));
+        $sizeCode = strtoupper($size);
 
         $base = "{$initials}-{$colorCode}-{$sizeCode}";
 
-        //keeping sku unique by adding number 
+        // keeping sku unique by adding number
         $sku = $base;
-        $count =1;
+        $count = 1;
 
-        while(ProductVariant::where('sku', $sku)->exists()){
+        while (ProductVariant::where('sku', $sku)->exists()) {
             $sku = "{$base}-{$count}";
             $count++;
         }
@@ -94,12 +94,12 @@ class ProductController extends Controller
         return $sku;
     }
 
-    //admin- update product
+    // admin- update product
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
 
-        if(!$product){
+        if (! $product) {
             return response()->json([
                 'message' => 'Product not found',
             ], 404);
@@ -119,12 +119,12 @@ class ProductController extends Controller
         ]);
     }
 
-    //admin - delete product
+    // admin - delete product
     public function destroy($id)
     {
         $product = Product::find($id);
 
-        if(!$product){
+        if (! $product) {
             return response()->json([
                 'message' => 'Product not Found',
             ], 404);

@@ -18,10 +18,10 @@ beforeEach(function () {
 
     $this->variant = ProductVariant::factory()->create([
         'product_id' => $this->product->id,
-        'price'      => 9.99,
-        'stock'      => 10,
-        'size'       => 'S',
-        'color'      => 'Red',
+        'price' => 9.99,
+        'stock' => 10,
+        'size' => 'S',
+        'color' => 'Red',
     ]);
 });
 
@@ -31,21 +31,21 @@ test('customer can place order from cart', function () {
     // Add to cart first
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 2,
+        'quantity' => 2,
     ]);
 
     $response = $this->postJson('/api/orders');
 
     $response->assertStatus(201)
-             ->assertJson(['message' => 'Order placed successfully.'])
-             ->assertJsonStructure([
-                 'order' => [
-                     'id',
-                     'total_price',
-                     'status',
-                     'items',
-                 ],
-             ]);
+        ->assertJson(['message' => 'Order placed successfully.'])
+        ->assertJsonStructure([
+            'order' => [
+                'id',
+                'total_price',
+                'status',
+                'items',
+            ],
+        ]);
 
     expect($response->json('order.status'))->toBe('pending');
     expect($response->json('order.total_price'))->toBe(19.98);
@@ -56,7 +56,7 @@ test('stock is deducted after order placed', function () {
 
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 3,
+        'quantity' => 3,
     ]);
 
     $this->postJson('/api/orders');
@@ -70,7 +70,7 @@ test('cart is cleared after order placed', function () {
 
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 2,
+        'quantity' => 2,
     ]);
 
     $this->postJson('/api/orders');
@@ -86,7 +86,7 @@ test('customer cannot place order with empty cart', function () {
     $response = $this->postJson('/api/orders');
 
     $response->assertStatus(400)
-             ->assertJson(['message' => 'Your cart is empty']);
+        ->assertJson(['message' => 'Your cart is empty']);
 });
 
 test('customer can view their orders', function () {
@@ -94,7 +94,7 @@ test('customer can view their orders', function () {
 
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 1,
+        'quantity' => 1,
     ]);
     $this->postJson('/api/orders');
 
@@ -109,7 +109,7 @@ test('customer can view single order', function () {
 
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 1,
+        'quantity' => 1,
     ]);
     $this->postJson('/api/orders');
 
@@ -134,7 +134,7 @@ test('admin can update order status', function () {
     Sanctum::actingAs($this->customer);
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 1,
+        'quantity' => 1,
     ]);
     $this->postJson('/api/orders');
     $orderId = $this->getJson('/api/orders')->json('0.id');
@@ -154,7 +154,7 @@ test('admin cannot set invalid order status', function () {
     Sanctum::actingAs($this->customer);
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 1,
+        'quantity' => 1,
     ]);
     $this->postJson('/api/orders');
     $orderId = $this->getJson('/api/orders')->json('0.id');
@@ -173,7 +173,7 @@ test('customer cannot view another customers order', function () {
 
     $this->postJson('/api/cart', [
         'product_variant_id' => $this->variant->id,
-        'quantity'           => 1,
+        'quantity' => 1,
     ]);
     $this->postJson('/api/orders');
     $orderId = $this->getJson('/api/orders')->json('0.id');

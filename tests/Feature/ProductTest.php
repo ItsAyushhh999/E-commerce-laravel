@@ -14,17 +14,17 @@ beforeEach(function () {
     ]);
 
     $this->productData = [
-        'name'        => 'Basic Tshirt',
+        'name' => 'Basic Tshirt',
         'description' => 'A simple t-shirt',
-        'variants'    => [
+        'variants' => [
             [
-                'size'  => 'S',
+                'size' => 'S',
                 'color' => 'Red',
                 'price' => 9.99,
                 'stock' => 10,
             ],
             [
-                'size'  => 'M',
+                'size' => 'M',
                 'color' => 'Blue',
                 'price' => 11.99,
                 'stock' => 5,
@@ -68,14 +68,14 @@ test('admin can create product with variants', function () {
     $response = $this->postJson('/api/products', $this->productData);
 
     $response->assertStatus(201)
-             ->assertJsonStructure([
-                 'message',
-                 'product' => [
-                     'id',
-                     'name',
-                     'variants',
-                 ],
-             ]);
+        ->assertJsonStructure([
+            'message',
+            'product' => [
+                'id',
+                'name',
+                'variants',
+            ],
+        ]);
 
     expect($response->json('product.name'))->toBe('Basic Tshirt');
     expect(count($response->json('product.variants')))->toBe(2);

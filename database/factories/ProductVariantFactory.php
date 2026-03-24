@@ -11,11 +11,11 @@ class ProductVariantFactory extends Factory
     {
         return [
             'product_id' => Product::factory(),
-            'sku'        => strtoupper(fake()->unique()->bothify('???-###')),
-            'size'       => fake()->randomElement(['S', 'M', 'L', 'XL']),
-            'color'      => fake()->randomElement(['Red', 'Blue', 'Black', 'White']),
-            'price'      => fake()->randomFloat(2, 5, 100),
-            'stock'      => fake()->numberBetween(1, 50),
+            'sku' => strtoupper(fake()->unique()->bothify('???-###')),
+            'size' => fake()->randomElement(['S', 'M', 'L', 'XL']),
+            'color' => fake()->randomElement(['Red', 'Blue', 'Black', 'White']),
+            'price' => fake()->randomFloat(2, 5, 100),
+            'stock' => fake()->numberBetween(1, 50),
         ];
     }
 }

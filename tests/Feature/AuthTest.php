@@ -6,15 +6,15 @@ use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
     $this->admin = User::factory()->create([
-        'email'    => 'admin@example.com',
+        'email' => 'admin@example.com',
         'password' => Hash::make('password'),
-        'role'     => 'admin',
+        'role' => 'admin',
     ]);
 
     $this->customer = User::factory()->create([
-        'email'    => 'john@example.com',
+        'email' => 'john@example.com',
         'password' => Hash::make('password123'),
-        'role'     => 'customer',
+        'role' => 'customer',
     ]);
 });
 
@@ -24,18 +24,18 @@ beforeEach(function () {
 
 test('customer can register', function () {
     $response = $this->postJson('/api/register', [
-        'name'                  => 'Jane Doe',
-        'email'                 => 'jane@example.com',
-        'password'              => 'password123',
+        'name' => 'Jane Doe',
+        'email' => 'jane@example.com',
+        'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
 
     $response->assertStatus(201)
-             ->assertJsonStructure([
-                 'user',
-                 'access_token',
-                 'token_type',
-             ]);
+        ->assertJsonStructure([
+            'user',
+            'access_token',
+            'token_type',
+        ]);
 
     expect($response->json('user.email'))->toBe('jane@example.com');
 });
@@ -51,9 +51,9 @@ test('customer cannot register with missing fields', function () {
 
 test('customer cannot register with mismatched password confirmation', function () {
     $response = $this->postJson('/api/register', [
-        'name'                  => 'Jane Doe',
-        'email'                 => 'jane@example.com',
-        'password'              => 'password123',
+        'name' => 'Jane Doe',
+        'email' => 'jane@example.com',
+        'password' => 'password123',
         'password_confirmation' => 'differentpassword',
     ]);
 
@@ -67,7 +67,7 @@ test('customer cannot register with mismatched password confirmation', function 
 test('user can login with correct credentials', function () {
     // use the customer already created in beforeEach
     $response = $this->postJson('/api/login', [
-        'email'    => 'john@example.com',
+        'email' => 'john@example.com',
         'password' => 'password123',
     ]);
     $response->assertStatus(200);
@@ -77,7 +77,7 @@ test('user can login with correct credentials', function () {
 
 test('user cannot login with wrong password', function () {
     $response = $this->postJson('/api/login', [
-        'email'    => 'john@example.com',
+        'email' => 'john@example.com',
         'password' => 'wrongpassword',
     ]);
 
@@ -86,7 +86,7 @@ test('user cannot login with wrong password', function () {
 
 test('user cannot login with wrong email', function () {
     $response = $this->postJson('/api/login', [
-        'email'    => 'notexist@example.com',
+        'email' => 'notexist@example.com',
         'password' => 'password123',
     ]);
 
@@ -103,7 +103,7 @@ test('customer can logout', function () {
     $response = $this->postJson('/api/logout');
 
     $response->assertStatus(200)
-             ->assertJson(['message' => 'Logged out successfully']);
+        ->assertJson(['message' => 'Logged out successfully']);
 });
 
 test('unauthenticated user cannot logout', function () {
