@@ -10,6 +10,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule order status updates to run daily at 1 AM
-Schedule::job(new UpdateOrderStatuses())
+Schedule::job(new UpdateOrderStatuses)
     ->dailyAt('01:00')
     ->description('Update order statuses (pending→processing→completed, with random cancellations)');
