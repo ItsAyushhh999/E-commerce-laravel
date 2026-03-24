@@ -110,6 +110,33 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    // admin - retrieve similar order
+    public function specificOrder()
+    {
+
+        $allOrders = Order::with(['items.productVariant'])->get();
+
+        $similarOrders = $allOrders->map(function ($order) {
+            $similar = $order->items
+                ->map(fn ($item) => $item->productVariant->sku.':'.$item->quantity)
+                ->sort()
+                ->implode(',');
+
+            return [
+                'order' => $order,
+                'similar' => $similar,
+            ];
+        });
+
+        $exactOrders = $similarOrders
+            ->groupBy('similar')
+            ->filter(fn ($group) => $group->count() > 1)
+            ->map(fn ($group) => $group->pluck('order'))
+            ->values();
+
+        return response()->json($exactOrders);
+    }
+
     // admin- update order status
     public function updateStatus(Request $request, $id)
     {
