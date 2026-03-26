@@ -37,7 +37,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'image' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'variants' => 'required|array|min:1',
             'variants.*.size' => 'required|string',
             'variants.*.color' => 'required|string',
@@ -48,7 +48,7 @@ class ProductController extends Controller
         $product = Product::create([
             'name' => $request->name,
             'description' => $request->description,
-            'image' => $request->image,
+            'image' => $request->file('image')?->store('products', 'public'),
         ]);
 
         foreach ($request->variants as $variant) {
@@ -116,6 +116,24 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Product details updated',
             'product' => $product->load('variants'),
+        ]);
+    }
+
+    // admin- update variant
+    public function updateVariant(Request $request, $id)
+    {
+        $variant = ProductVariant::findOrFail($id);
+
+        $request->validate([
+            'stock' => 'sometimes|integer|min:0',
+            'price' => 'sometimes|numeric|min:0',
+        ]);
+
+        $variant->update($request->only('stock', 'price'));
+
+        return response()->json([
+            'message' => 'Variant updated successfully',
+            'variant' => $variant->fresh(),
         ]);
     }
 
