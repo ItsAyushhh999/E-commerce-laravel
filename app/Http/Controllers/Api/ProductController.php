@@ -53,7 +53,7 @@ class ProductController extends Controller
 
         foreach ($request->variants as $variant) {
             // generating sku
-            $sku = $this->generateSku($request->name, $variant['color'], $variant['size']);
+            $sku = generate_sku($request->name, $variant['color'], $variant['size']);
             $product->variants()->create([
                 'sku' => $sku,
                 'size' => $variant['size'],
@@ -67,31 +67,6 @@ class ProductController extends Controller
             'message' => 'Product created successfully',
             'product' => $product->load('variants'),
         ], 201);
-    }
-
-    // SKU genereate help
-    private function generateSku($productName, $color, $size)
-    {
-        // get initials from product name
-        $initials = collect(explode(' ', strtoupper($productName)))
-            ->map(fn ($word) => substr($word, 0, 1))
-            ->implode('');
-
-        $colorCode = strtoupper(substr($color, 0, 3));
-        $sizeCode = strtoupper($size);
-
-        $base = "{$initials}-{$colorCode}-{$sizeCode}";
-
-        // keeping sku unique by adding number
-        $sku = $base;
-        $count = 1;
-
-        while (ProductVariant::where('sku', $sku)->exists()) {
-            $sku = "{$base}-{$count}";
-            $count++;
-        }
-
-        return $sku;
     }
 
     // admin- update product

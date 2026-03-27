@@ -15,6 +15,13 @@ class CartController extends Controller
             ->with('productvariant.product')
             ->get();
 
+        if ($cart->isEmpty()) {
+            return response()->json([
+                'message' => 'Cart is empty',
+                'cart' => [],
+            ]);
+        }
+
         $total = $cart->sum(function ($item) {
             return $item->productvariant->price * $item->quantity;
         });
@@ -22,6 +29,7 @@ class CartController extends Controller
         return response()->json([
             'cart' => $cart,
             'total' => $total,
+            'total_formatted' => format_price($total),
         ]);
     }
 
