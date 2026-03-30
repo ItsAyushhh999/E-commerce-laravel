@@ -25,6 +25,10 @@ beforeEach(function () {
     ]);
 });
 
+// ========================================================
+// Customer order tests
+// ========================================================
+
 test('customer can place order from cart', function () {
     Sanctum::actingAs($this->customer);
 
@@ -121,6 +125,10 @@ test('customer can view single order', function () {
     expect($response->json('id'))->toBe($orderId);
 });
 
+// ==================================================================
+// Admin Order Tests
+// ==================================================================
+
 test('admin can view all orders', function () {
     Sanctum::actingAs($this->admin);
 
@@ -167,6 +175,10 @@ test('admin cannot set invalid order status', function () {
 
     $response->assertStatus(422);
 });
+
+// ===================================================================
+// Customer authentication tests
+// ===================================================================
 
 test('customer cannot view another customers order', function () {
     Sanctum::actingAs($this->customer);

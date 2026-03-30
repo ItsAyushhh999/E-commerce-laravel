@@ -21,6 +21,9 @@ beforeEach(function () {
     ]);
 });
 
+// ========================================================
+// Customer Tests
+// ========================================================
 test('customer can add item to cart', function () {
     Sanctum::actingAs($this->customer);
 
@@ -115,6 +118,10 @@ test('customer can clear entire cart', function () {
     $response->assertStatus(200)
         ->assertJson(['message' => 'Cart cleared']);
 });
+
+// =============================================================
+// Cart authentication test
+// =============================================================
 
 test('unauthenticated user cannot access cart', function () {
     $response = $this->getJson('/api/cart');

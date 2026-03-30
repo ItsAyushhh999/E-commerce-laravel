@@ -9,6 +9,10 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    // ==================================
+    // View entire cart
+    // ==================================
+
     public function index(Request $request)
     {
         $cart = Cart::where('user_id', $request->user()->id)
@@ -33,7 +37,10 @@ class CartController extends Controller
         ]);
     }
 
-    // add to cart
+    // =======================
+    // Add to cart
+    // =======================
+
     public function add(Request $request)
     {
         $request->validate([
@@ -85,6 +92,10 @@ class CartController extends Controller
         ], 200);
     }
 
+    // ================================
+    // For Updating cart
+    // ================================
+
     public function update(Request $request, $id)
     {
         $cartItem = Cart::where('id', $id)
@@ -118,7 +129,10 @@ class CartController extends Controller
         ]);
     }
 
-    // removing item
+    // =========================
+    // Removing item
+    // =========================
+
     public function remove(Request $request, $id)
     {
         $cartItem = Cart::where('id', $id)
@@ -138,7 +152,10 @@ class CartController extends Controller
         ]);
     }
 
-    // removing 1 item by 1 quantity
+    // =========================================
+    // Decreasing an item by desired quantity
+    // =========================================
+
     public function decreaseQuantity(Request $request, $id)
     {
         $cartItem = Cart::where('id', $id)
@@ -174,6 +191,9 @@ class CartController extends Controller
         ]);
     }
 
+    // ================================
+    // Removing entire cart products
+    // ================================
     public function clear(Request $request)
     {
         Cart::where('user_id', $request->user()->id)

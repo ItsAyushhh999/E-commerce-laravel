@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
-    // customer placing order from cart
+    // ===================================
+    // Customer placing order from cart
+    // ===================================
+
     public function store(Request $request)
     {
         $cartItems = Cart::where('user_id', $request->user()->id)
@@ -72,7 +75,10 @@ class OrderController extends Controller
         ], 201);
     }
 
-    // customer - view own order
+    // ======================================
+    // Customer - viewing their own order
+    // ======================================
+
     public function index(Request $request)
     {
         $orders = Order::where('user_id', $request->user()->id)
@@ -83,7 +89,10 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    // customer - view single order
+    // ==================================
+    // Customer - view single order
+    // ==================================
+
     public function show(Request $request, $id)
     {
         $order = Order::where('id', $id)
@@ -100,7 +109,10 @@ class OrderController extends Controller
         return response()->json($order);
     }
 
-    // admin - view all order
+    // ===========================
+    // Admin - view all order
+    // ===========================
+
     public function adminIndex()
     {
         $orders = Order::with(['user', 'items.productVariant.product'])
@@ -110,7 +122,10 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    // admin - retrieve similar order
+    // =================================
+    // Admin - retrieve similar order
+    // =================================
+
     public function specificOrder()
     {
 
@@ -137,7 +152,10 @@ class OrderController extends Controller
         return response()->json($exactOrders);
     }
 
-    // admin- update order status
+    // ===================================
+    // Admin- update order status
+    // ===================================
+
     public function updateStatus(Request $request, $id)
     {
         $order = Order::find($id);

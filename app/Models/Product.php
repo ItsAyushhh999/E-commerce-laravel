@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -14,7 +14,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'description',
-        'image',
+        // removed image
     ];
 
     public function variants(): HasMany
@@ -22,12 +22,13 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
-    protected function image(): Attribute
+    public function images(): HasMany
     {
-        return Attribute::make(
-            get: fn ($value) => $value
-                ? asset('storage/'.$value)
-                : null
-        );
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function primaryImage(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)->where('is_primary', true);
     }
 }

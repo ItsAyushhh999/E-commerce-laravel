@@ -11,7 +11,7 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->word().' Tshirt',
             'description' => fake()->sentence(),
-            'image' => null,
+            // 'image' => null,
         ];
     }
 }
