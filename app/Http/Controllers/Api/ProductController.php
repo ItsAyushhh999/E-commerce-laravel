@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\UpdateVariantRequest;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -42,8 +45,9 @@ class ProductController extends Controller
     // [Admin] - creating product with variants and multiple images
     // =============================================================
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
+        /*
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
@@ -56,6 +60,7 @@ class ProductController extends Controller
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'required|integer|min:0',
         ]);
+        */
 
         $product = Product::create([
             'name' => $request->name,
@@ -96,7 +101,7 @@ class ProductController extends Controller
     // [Admin] - update product details
     // =============================================================
 
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::find($id);
 
@@ -104,6 +109,7 @@ class ProductController extends Controller
             return response()->json(['message' => 'Product not found'], 404);
         }
 
+        /*
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
@@ -111,6 +117,7 @@ class ProductController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'primary_image_id' => 'nullable|integer|exists:product_images,id',
         ]);
+        */
 
         $product->update($request->only('name', 'description'));
 
@@ -145,14 +152,16 @@ class ProductController extends Controller
     // [Admin] - update variants stock and price
     // ===============================================
 
-    public function updateVariant(Request $request, $id)
+    public function updateVariant(UpdateVariantRequest $request, $id)
     {
         $variant = ProductVariant::findOrFail($id);
 
+        /*
         $request->validate([
             'stock' => 'sometimes|integer|min:0',
             'price' => 'sometimes|numeric|min:0',
         ]);
+        */
 
         $variant->update($request->only('stock', 'price'));
 
