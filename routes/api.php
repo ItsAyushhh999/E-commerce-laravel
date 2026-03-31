@@ -44,6 +44,7 @@ Route::middleware(['auth:sanctum', 'role:customer', 'throttle:api'])->group(func
     });
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::get('/orders/{id}/invoice', [OrderController::class, 'downloadInvoice']);
 });
 
 // Admin routes

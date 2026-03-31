@@ -10,6 +10,7 @@
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
+        "laraveldaily/laravel-invoices": "*",
         "predis/predis": "^3.4"
     },
     "require-dev": {

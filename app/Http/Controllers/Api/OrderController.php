@@ -8,7 +8,11 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use LaravelDaily\Invoices\Classes\Buyer;          // vendor imports
+use LaravelDaily\Invoices\Classes\InvoiceItem;    // vendor imports
+use LaravelDaily\Invoices\Invoice;                // vendor imports
 
 class OrderController extends Controller
 {
@@ -72,6 +76,10 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Order placed successfully.',
             'order' => $order->load('items.productVariant.product'),
+
+            // Carbon additions
+            'placed_at' => Carbon::parse($order->created_at)->format('F d, Y h:i A'),
+            'estimated_delivery' => Carbon::now()->addDays(7)->format('F d, Y'),
         ], 201);
     }
 
@@ -106,6 +114,10 @@ class OrderController extends Controller
             ], 404);
         }
 
+        $order->placed_at = Carbon::parse($order->created_at)->format('F d, Y h:i A');
+        $order->time_ago = Carbon::parse($order->created_at)->diffForHumans();
+        $order->estimated_delivery = Carbon::parse($order->created_at)->addDays(7)->format('F d, Y');
+
         return response()->json($order);
     }
 
@@ -118,6 +130,15 @@ class OrderController extends Controller
         $orders = Order::with(['user', 'items.productVariant.product'])
             ->latest()
             ->get();
+
+        // Carbon addition
+        $orders->transform(function ($order) {
+            $order->placed_at = Carbon::parse($order->created_at)->format('F d, Y h:i A');
+            $order->time_ago = Carbon::parse($order->created_at)->diffForHumans();
+            $order->estimated_delivery = Carbon::parse($order->created_at)->addDays(7)->format('F d, Y');
+
+            return $order;
+        });
 
         return response()->json($orders);
     }
@@ -175,6 +196,48 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Order status updated',
             'order' => $order->load('items.productVariant.product'),
+
+            // Carbon addition
+            'updated_at_formatted' => Carbon::parse($order->updated_at)->format('F d, Y h:i A'),
+            'updated_ago' => Carbon::parse($order->updated_at)->diffForHumans(),
         ]);
+    }
+
+    // =======================================
+    // Gives invoice of the order placed
+    // =======================================
+
+    public function downloadInvoice(Request $request, $id)
+    {
+        $order = Order::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->with('items.productVariant.product')
+            ->first();
+
+        if (! $order) {
+            return response()->json([
+                'message' => 'Order not found',
+            ], 404);
+        }
+
+        $customer = new Buyer([
+            'name' => $request->user()->name,
+            'custom_fields' => [
+                'email' => $request->user()->email,
+            ],
+        ]);
+
+        $invoiceItems = $order->items->map(function ($item) {
+            return InvoiceItem::make($item->productVariant->product->name)
+                ->pricePerUnit($item->price)
+                ->quantity($item->quantity);
+        })->toArray();
+
+        $invoice = Invoice::make()
+            ->buyer($customer)
+            ->serialNumberFormat('INV-{SEQUENCE}')
+            ->addItems($invoiceItems);
+
+        return $invoice->download("invoice-order-{$order->id}.pdf");
     }
 }
