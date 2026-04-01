@@ -35,7 +35,7 @@ test('customer can add item to cart', function () {
     $response->assertSuccessful()
         ->assertJson(['message' => 'Item added to cart']);
 
-    expect($response->json('cart.quantity'))->toBe(2);
+    expect($response->json('cart_item.quantity'))->toBe(2);
 });
 
 test('adding same item increases quantity', function () {
