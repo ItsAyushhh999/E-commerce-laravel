@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Mailer;
 use Illuminate\Support\Carbon;
 use LaravelDaily\Invoices\Classes\Buyer;          // vendor imports
 use LaravelDaily\Invoices\Classes\InvoiceItem;    // vendor imports
@@ -13,7 +14,7 @@ use LaravelDaily\Invoices\Invoice;                // vendor imports
 
 class OrderController extends Controller
 {
-    public function __construct(private OrderService $service) {}
+    public function __construct(private OrderService $service, private Mailer $mailer) {}
 
     // ===================================
     // Customer placing order from cart
@@ -37,6 +38,12 @@ class OrderController extends Controller
         }
 
         $order = $result['order'];
+
+        // New macro method — never existed on Mailer before
+        $this->mailer->sendOrderConfirmation(
+            $request->user()->email,
+            $order
+        );
 
         return response()->json([
             'message' => 'Order placed successfully.',

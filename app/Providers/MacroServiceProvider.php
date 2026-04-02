@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Mail\Mailer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,7 @@ class MacroServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerCollectionMacros();
+        $this->registerMailerMacros();
     }
 
     private function registerCollectionMacros(): void
@@ -42,6 +44,24 @@ class MacroServiceProvider extends ServiceProvider
             return $grouped->map(function ($group) use ($keys) {
                 return $group->groupByMultiple($keys);
             });
+        });
+    }
+
+    private function registerMailerMacros(): void
+    {
+        Mailer::macro('sendOrderConfirmation', function (string $email, $order) {
+            logger()->info('sendOrderConfirmation macro fired', [
+                'email' => $email,
+                'order_id' => $order->id,
+            ]);
+
+            // raw() takes a plain string — no blade view needed
+            return $this->raw(
+                "Your order #{$order->id} has been placed successfully. Total: {$order->total_price}",
+                fn ($message) => $message
+                    ->to($email)
+                    ->subject("Order Confirmation #{$order->id}")
+            );
         });
     }
 }
