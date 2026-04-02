@@ -122,7 +122,7 @@ test('customer can view single order', function () {
     $response = $this->getJson("/api/orders/{$orderId}");
 
     $response->assertStatus(200);
-    expect($response->json('id'))->toBe($orderId);
+    expect($response->json('order.id'))->toBe($orderId);
 });
 
 // ==================================================================

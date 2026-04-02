@@ -69,7 +69,22 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        return response()->json($order);
+        // Group items by SKU then size
+        $groupedItems = collect($order->items)
+            ->map(fn ($item) => [
+                'sku' => $item->productVariant->sku,
+                'size' => $item->productVariant->size,
+                'color' => $item->productVariant->color,
+                'name' => $item->productVariant->product->name,
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+            ])
+            ->groupByMultiple(['sku', 'size']);
+
+        return response()->json([
+            'order' => $order,
+            'grouped_items' => $groupedItems,
+        ]);
     }
 
     // ===========================
