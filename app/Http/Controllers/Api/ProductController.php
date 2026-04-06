@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateVariantRequest;
 use App\Http\Resources\ProductVariantResource;
 use App\Models\ProductVariant;
 use App\Services\ProductService;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -145,5 +146,27 @@ class ProductController extends Controller
         $this->service->deleteImage($product, $imageId);
 
         return response()->json(['message' => 'Image deleted successfully']);
+    }
+
+    public function showDetails()
+    {
+        $products = DB::table('product_variants as pv')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->join('product_variants_attribute_values as pvav', 'pvav.product_variant_id', '=', 'pv.id')
+            ->join('attribute_values as av', 'av.id', '=', 'pvav.attribute_value_id')
+            ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
+            ->select(
+                'p.name  as product_name',
+                'pv.sku',
+                'pv.price',
+                'pv.stock',
+                'a.name  as attribute',
+                'av.value as attribute_value'
+            )
+            ->orderBy('pv.id')
+            ->orderBy('a.name')
+            ->get();
+
+        return response()->json($products);
     }
 }

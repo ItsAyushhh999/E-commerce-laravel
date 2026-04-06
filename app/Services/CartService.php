@@ -12,6 +12,7 @@ class CartService
     {
         $cart = Cart::where('user_id', $userId)
             ->with('productvariant.product')
+            ->with('productvariant.attributeValues.attribute')
             ->get();
 
         if ($cart->isEmpty()) {
@@ -52,7 +53,7 @@ class CartService
 
             return [
                 'updated' => true,
-                'cart_item' => $cartItem->load('productvariant.product'),
+                'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
             ];
         }
 
@@ -64,7 +65,7 @@ class CartService
 
         return [
             'updated' => false,
-            'cart_item' => $cartItem->load('productvariant.product'),
+            'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
         ];
     }
 
@@ -89,7 +90,7 @@ class CartService
         $cartItem->update(['quantity' => $newQuantity]);
 
         return [
-            'cart_item' => $cartItem->load('productvariant.product'),
+            'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
         ];
     }
 
@@ -132,7 +133,7 @@ class CartService
 
         return [
             'removed' => false,
-            'cart_item' => $cartItem->load('productVariant.product'),
+            'cart_item' => $cartItem->load(['productVariant.product', 'productVariant.attributeValues.attribute']),
         ];
     }
 

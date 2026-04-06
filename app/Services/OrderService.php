@@ -52,7 +52,7 @@ class OrderService
 
         Cart::where('user_id', $userId)->delete();
 
-        $order->load('items.productVariant.product');
+        $order->load(['items.productVariant.product', 'items.productVariant.attributeValues.attribute']);
 
         Mail::to($email)->send(new OrderPlaced($order));
 
@@ -66,7 +66,7 @@ class OrderService
     public function getUserOrders(int $userId)
     {
         return Order::where('user_id', $userId)
-            ->with('items.productVariant.product')
+            ->with(['items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
             ->latest()
             ->get();
     }
@@ -75,7 +75,7 @@ class OrderService
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', $userId)
-            ->with('items.productVariant.product')
+            ->with(['items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
             ->first();
 
         if (! $order) {
@@ -95,7 +95,7 @@ class OrderService
 
     public function getAllOrders()
     {
-        $orders = Order::with(['user', 'items.productVariant.product'])
+        $orders = Order::with(['user', 'items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
             ->latest()
             ->get();
 
@@ -146,6 +146,6 @@ class OrderService
 
         $order->update(['status' => $status]);
 
-        return $order->load('items.productVariant.product');
+        return $order->load(['items.productVariant.product', 'items.productVariant.attributeValues.attribute']);
     }
 }

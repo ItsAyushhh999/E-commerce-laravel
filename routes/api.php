@@ -29,7 +29,7 @@ Route::middleware('throttle:api')->group(function () {
 });
 
 Route::get('/attributes', [AttributeController::class, 'index']);
-
+Route::get('/details', [ProductController::class, 'showDetails']);
 // Route::delete('/attributes/{attribute}', [AttributeController::class, 'deleteAttribute']);
 
 // ======================
