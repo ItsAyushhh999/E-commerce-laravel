@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
+    // ===================================
+    // Customer placing order from cart
+    // ===================================
+
     public function placeOrder(int $userId, string $email): array
     {
         $cartItems = Cart::where('user_id', $userId)
@@ -55,6 +59,10 @@ class OrderService
         return ['order' => $order];
     }
 
+    // ======================================
+    // Customer - viewing their own order
+    // ======================================
+
     public function getUserOrders(int $userId)
     {
         return Order::where('user_id', $userId)
@@ -81,6 +89,10 @@ class OrderService
         return $order;
     }
 
+    // ====================================
+    // Admin - view all order
+    // ====================================
+
     public function getAllOrders()
     {
         $orders = Order::with(['user', 'items.productVariant.product'])
@@ -95,6 +107,10 @@ class OrderService
             return $order;
         });
     }
+
+    // ====================================
+    // Admin - view similar orders
+    // ====================================
 
     public function getSimilarOrders()
     {
@@ -115,6 +131,10 @@ class OrderService
             ->map(fn ($group) => $group->pluck('order'))
             ->values();
     }
+
+    // =================================
+    // Admin - update order status
+    // =================================
 
     public function updateStatus(int $orderId, string $status): ?Order
     {

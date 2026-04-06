@@ -29,10 +29,10 @@ class StoreProductRequest extends FormRequest
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'primary_index' => 'nullable|integer|min:0',
             'variants' => 'required|array|min:1',
-            'variants.*.size' => 'required|string',
-            'variants.*.color' => 'required|string',
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'required|integer|min:0',
+            'variants.*.attribute_value_ids' => 'required|array|min:1',
+            'variants.*.attribute_value_ids.*' => 'required|integer|exists:attribute_values,id',
         ];
     }
 }

@@ -27,6 +27,10 @@ class ProductService
         return $this->repository->find($id);
     }
 
+    // ================================
+    // [Admin] - Create, Update, Delete
+    // ================================
+
     // Creating a product with variants and multiple images
     public function createProduct(array $data, array $images, array $variants): Product
     {
@@ -38,7 +42,7 @@ class ProductService
         $this->attachImages($product, $images, (int) ($data['primary_index'] ?? 0));
         $this->attachVariants($product, $variants);
 
-        return $product->load(['variants', 'images']);
+        return $product->load(['variants.attributeValues.attribute', 'images']);
     }
 
     // Update product details
@@ -96,6 +100,7 @@ class ProductService
     // Private Helpers
     // ==================
 
+    // Attach multiple images to a product, setting the primary image based on the provided index
     private function attachImages(Product $product, array $images, int $primaryIndex): void
     {
         foreach ($images as $index => $image) {
@@ -107,6 +112,7 @@ class ProductService
         }
     }
 
+    // Append new images to an existing product without affecting existing ones
     private function appendImages(Product $product, array $images): void
     {
         $lastOrder = $product->images()->max('sort_order') ?? -1;
@@ -120,25 +126,29 @@ class ProductService
         }
     }
 
+    // Attach variants to a product, generating unique SKUs for each variant
     private function attachVariants(Product $product, array $variants): void
     {
         foreach ($variants as $variant) {
-            $product->variants()->create([
-                'sku' => generate_sku($product->name, $variant['color'], $variant['size']),
-                'size' => $variant['size'],
-                'color' => $variant['color'],
+            $productVariant = $product->variants()->create([
+                'sku' => generate_sku($product, $variant['attribute_value_ids']),
                 'price' => $variant['price'],
                 'stock' => $variant['stock'],
             ]);
+
+            // Attach attribute values dynamically
+            $productVariant->attributeValues()->attach($variant['attribute_value_ids']);
         }
     }
 
+    // Change the primary image of a product by updating the is_primary flag on the relevant images
     private function changePrimaryImage(Product $product, int $imageId): void
     {
         $product->images()->update(['is_primary' => false]);
         $product->images()->where('id', $imageId)->update(['is_primary' => true]);
     }
 
+    // Delete all images associated with a product from storage when the product is deleted
     private function deleteProductImages(Product $product): void
     {
         foreach ($product->images as $image) {

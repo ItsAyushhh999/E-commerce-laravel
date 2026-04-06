@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\ProductVariant;
+use App\Models\AttributeValue;
+use App\Models\Product;
 use Illuminate\Support\Carbon;
 
 // Format price
@@ -21,23 +22,15 @@ if (! function_exists('human_date')) {
 
 // sku generate
 if (! function_exists('generate_sku')) {
-    function generate_sku(string $productName, string $color, string $size): string
+    function generate_sku(Product $product, array $attributeValueIds): string
     {
-        $initials = collect(explode(' ', strtoupper($productName)))
-            ->map(fn ($word) => substr($word, 0, 1))
-            ->implode('');
+        $productPrefix = strtoupper(substr(str_replace(' ', '', $product->name), 0, 3));
 
-        $colorCode = strtoupper(substr($color, 0, 3));
-        $sizeCode = strtoupper($size);
-        $base = "{$initials}-{$colorCode}-{$sizeCode}";
-        $sku = $base;
-        $count = 1;
+        $values = AttributeValue::whereIn('id', $attributeValueIds)
+            ->pluck('value')
+            ->map(fn ($value) => strtoupper(substr($value, 0, 3)))
+            ->join('-');
 
-        while (ProductVariant::where('sku', $sku)->exists()) {
-            $sku = "{$base}-{$count}";
-            $count++;
-        }
-
-        return $sku;
+        return $productPrefix.'-'.$product->id.'-'.$values;
     }
 }

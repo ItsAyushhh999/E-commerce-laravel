@@ -8,6 +8,7 @@ use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use LaravelDaily\Invoices\Classes\Buyer;          // vendor imports
 use LaravelDaily\Invoices\Classes\InvoiceItem;    // vendor imports
 use LaravelDaily\Invoices\Invoice;                // vendor imports
@@ -138,6 +139,31 @@ class OrderController extends Controller
             'order' => $order,
             'updated_at_formatted' => Carbon::parse($order->updated_at)->format('F d, Y h:i A'),
             'updated_ago' => Carbon::parse($order->updated_at)->diffForHumans(),
+        ]);
+    }
+
+    // Group by sku, size
+    public function similargroup(Request $request)
+    {
+        $order = Order::where('orders.id', $request->id)
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id')
+            ->join('products', 'product_variants.product_id', '=', 'products.id')
+            ->select(
+                'product_variants.sku',
+                'product_variants.size',
+                'product_variants.color',
+                'products.name',
+                'product_variants.price',
+                DB::raw('SUM(order_items.quantity) as total_quantity'),
+                DB::raw('COUNT(DISTINCT orders.id) as line_count')
+            )
+            ->groupBy('product_variants.sku', 'product_variants.size', 'product_variants.color')
+            ->orderBy('product_variants.sku', 'asc')
+            ->get();
+
+        return response()->json([
+            'similar_items' => $order,
         ]);
     }
 

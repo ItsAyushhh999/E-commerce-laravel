@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AttributeController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
@@ -11,7 +12,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// ==============
 // Public
+// ==============
 Route::middleware('throttle:login')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
@@ -25,7 +28,13 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/products/{id}', [ProductController::class, 'show']);
 });
 
+Route::get('/attributes', [AttributeController::class, 'index']);
+
+// Route::delete('/attributes/{attribute}', [AttributeController::class, 'deleteAttribute']);
+
+// ======================
 // Customer routes
+// ======================
 Route::middleware(['auth:sanctum', 'role:customer', 'throttle:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -45,18 +54,29 @@ Route::middleware(['auth:sanctum', 'role:customer', 'throttle:api'])->group(func
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::get('/orders/{id}/invoice', [OrderController::class, 'downloadInvoice']);
+    Route::get('/orders/{id}/similar', [OrderController::class, 'similargroup']);
 });
 
+// ==================
 // Admin routes
+// ==================
+
 Route::middleware(['auth:sanctum', 'role:admin', 'throttle:api'])->group(function () {
+    // Products
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     Route::patch('/variants/{id}', [ProductController::class, 'updateVariant']);
     Route::delete('/products/{productId}/images/{imageId}', [ProductController::class, 'destroyImage']);
 
+    // Orders
     Route::get('/admin/orders', [OrderController::class, 'adminIndex']);
     Route::put('/admin/orders/{id}', [OrderController::class, 'updateStatus']);
     Route::patch('/admin/orders/{id}', [OrderController::class, 'updateStatus']);
     Route::get('/admin/similarorders', [OrderController::class, 'specificOrder']);
+
+    // Attributes
+    Route::post('/attributes', [AttributeController::class, 'store']);
+    Route::post('/attributes/{attribute}/values', [AttributeController::class, 'addValue']);
+    Route::delete('/attribute-values/{value}', [AttributeController::class, 'deleteValue']);
 });

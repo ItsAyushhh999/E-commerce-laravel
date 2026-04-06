@@ -18,9 +18,6 @@ return new class extends Migration
             $table->index('product_id');
             $table->index('price');
             $table->index('stock');
-            $table->index(['product_id', 'color']);
-            $table->index(['product_id', 'size']);
-            $table->index(['color', 'size']);
         });
 
         // Carts
@@ -55,9 +52,6 @@ return new class extends Migration
             $table->dropIndex(['product_id']);
             $table->dropIndex(['price']);
             $table->dropIndex(['stock']);
-            $table->dropIndex(['product_id', 'color']);
-            $table->dropIndex(['product_id', 'size']);
-            $table->dropIndex(['color', 'size']);
         });
 
         Schema::table('carts', function (Blueprint $table) {

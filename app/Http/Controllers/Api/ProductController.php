@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UpdateVariantRequest;
+use App\Http\Resources\ProductVariantResource;
 use App\Models\ProductVariant;
 use App\Services\ProductService;
 
@@ -39,7 +40,13 @@ class ProductController extends Controller
             ], 404);
         }
 
-        return response()->json($product);
+        return response()->json([
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'images' => $product->images,
+            'variants' => ProductVariantResource::collection($product->variants),
+        ]);
     }
 
     // =============================================================
@@ -56,7 +63,13 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully',
-            'product' => $product,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'images' => $product->images,
+                'variants' => ProductVariantResource::collection($product->variants),
+            ],
         ], 201);
     }
 
@@ -96,7 +109,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Variant updated successfully',
-            'variant' => $variant->fresh(),
+            'variant' => new ProductVariantResource($variant->fresh()->load('attributeValues.attribute')),
         ]);
     }
 

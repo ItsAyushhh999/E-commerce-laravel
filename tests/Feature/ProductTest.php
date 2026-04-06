@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Attribute;
 use App\Models\Product;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -13,21 +14,28 @@ beforeEach(function () {
         'role' => 'customer',
     ]);
 
+    // create attributes and values
+    $size = Attribute::create(['name' => 'size']);
+    $color = Attribute::create(['name' => 'color']);
+
+    $small = $size->values()->create(['value' => 'S']);
+    $medium = $size->values()->create(['value' => 'M']);
+    $red = $color->values()->create(['value' => 'Red']);
+    $blue = $color->values()->create(['value' => 'Blue']);
+
     $this->productData = [
         'name' => 'Basic Tshirt',
         'description' => 'A simple t-shirt',
         'variants' => [
             [
-                'size' => 'S',
-                'color' => 'Red',
                 'price' => 9.99,
                 'stock' => 10,
+                'attribute_value_ids' => [$small->id, $red->id],
             ],
             [
-                'size' => 'M',
-                'color' => 'Blue',
                 'price' => 11.99,
                 'stock' => 5,
+                'attribute_value_ids' => [$medium->id, $blue->id],
             ],
         ],
     ];

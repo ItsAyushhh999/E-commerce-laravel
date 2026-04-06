@@ -16,8 +16,6 @@ beforeEach(function () {
         'product_id' => $this->product->id,
         'price' => 9.99,
         'stock' => 10,
-        'size' => 'S',
-        'color' => 'Red',
     ]);
 });
 
