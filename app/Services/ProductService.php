@@ -104,8 +104,19 @@ class ProductService
     private function attachImages(Product $product, array $images, int $primaryIndex): void
     {
         foreach ($images as $index => $image) {
+
+            // Clean product name (remove spaces/special chars)
+            $productName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '-', $product->name));
+
+            // Unique + readable filename
+            $fileName = $productName.'-img-'.$index.'-'.time().'.'.$image->getClientOriginalExtension();
+
+            // Store with custom name
+            $path = $image->storeAs('products', $fileName, 'public');
+
             $product->images()->create([
-                'path' => $image->store('products', 'public'),
+                'path' => $path,
+                'original_name' => $image->getClientOriginalName(),
                 'is_primary' => $index === $primaryIndex,
                 'sort_order' => $index,
             ]);
@@ -119,7 +130,8 @@ class ProductService
 
         foreach ($images as $image) {
             $product->images()->create([
-                'path' => $image->store('products', 'public'),
+                'path' => $path,
+                'original_name' => $image->getClientOriginalName(),
                 'is_primary' => false,
                 'sort_order' => ++$lastOrder,
             ]);

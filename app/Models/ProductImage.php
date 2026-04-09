@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,6 +14,7 @@ class ProductImage extends Model
     protected $fillable = [
         'product_id',
         'path',
+        'original_name',
         'is_primary',
         'sort_order',
     ];
@@ -21,7 +23,7 @@ class ProductImage extends Model
         'is_primary' => 'boolean',
     ];
 
-    public function product(): belongsTo
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }

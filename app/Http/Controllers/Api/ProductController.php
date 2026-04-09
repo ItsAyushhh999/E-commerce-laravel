@@ -157,6 +157,7 @@ class ProductController extends Controller
             ->join('attributes as a', 'a.id', '=', 'av.attribute_id')
             ->select(
                 'p.name  as product_name',
+                'pv.id as variant_id',
                 'pv.sku',
                 'pv.price',
                 'pv.stock',
