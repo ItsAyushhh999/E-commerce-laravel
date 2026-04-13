@@ -129,6 +129,11 @@ class ProductService
         $lastOrder = $product->images()->max('sort_order') ?? -1;
 
         foreach ($images as $image) {
+            $productName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '-', $product->name));
+            $fileName = $productName.'-img-'.time().'.'.$image->getClientOriginalExtension();
+
+            $path = $image->storeAs('products', $fileName, 'public');
+
             $product->images()->create([
                 'path' => $path,
                 'original_name' => $image->getClientOriginalName(),
