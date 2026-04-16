@@ -7,9 +7,13 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UpdateVariantRequest;
 use App\Http\Resources\ProductVariantResource;
+use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\ProductService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\DB;
+use Laravel\Ai\Reranking;
 
 class ProductController extends Controller
 {
@@ -169,5 +173,75 @@ class ProductController extends Controller
             ->get();
 
         return response()->json($products);
+    }
+
+    // GET - /api/counts
+    public function countProductsAndVariants()
+    {
+        [$productCount, $variantCount, $totalStock, $totalPrice] = Concurrency::run([
+            fn () => DB::table('products')->count(),
+            fn () => DB::table('product_variants')->count(),
+            fn () => DB::table('product_variants')->sum('stock'),
+            fn () => DB::table('product_variants')->sum('price'),
+        ]);
+
+        /*$orders = Concurrency::defer([
+            fn() => DB::table('orders')->count(),
+        ]);
+        */
+
+        return response()->json([
+            'product_count' => $productCount,
+            'variant_count' => $variantCount,
+            'total_stock' => $totalStock,
+            'total_price' => $totalPrice,
+        ]);
+    }
+
+    // GET - /api/search
+    public function search(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|max:255',
+        ]);
+
+        $products = Product::query()
+            ->whereFullText(['name', 'description'], $request->input('query'))
+            ->limit(20)
+            ->get()
+            ->rerank('description', $request->input('query'), limit: 10);
+
+        return response()->json($products);
+    }
+
+    // GET - /api/rerank
+    public function reranking()
+    {
+        $response = Reranking::of([
+            'Django is a Python web framework.',
+            'Laravel is a PHP web application framework.',
+            'React is a JavaScript library for building user interfaces.',
+        ])->rerank('PHP frameworks');
+
+        return response()->json($response);
+    }
+
+    // GET - /api/countswoc
+    public function noconcurrency()
+    {
+        $productCount = DB::table('products')->count();
+
+        $variantCount = DB::table('product_variants')->count();
+
+        $totalStock = DB::table('product_variants')->sum('stock');
+
+        $totalPrice = DB::table('product_variants')->sum('price');
+
+        return response()->json([
+            'product_count' => $productCount,
+            'variant_count' => $variantCount,
+            'total_stock' => $totalStock,
+            'total_price' => $totalPrice,
+        ]);
     }
 }

@@ -33,6 +33,11 @@ Route::get('/details', [ProductController::class, 'showDetails']);
 // Route::delete('/attributes/{attribute}', [AttributeController::class, 'deleteAttribute']);
 Route::get('/prods', [ProductController::class, 'products']);
 
+Route::get('/counts', [ProductController::class, 'countProductsAndVariants']);
+Route::get('/countswoc', [ProductController::class, 'noconcurrency']);
+Route::get('/search', [ProductController::class, 'search']);
+Route::get('/rerank', [ProductController::class, 'reranking']);
+
 // ======================
 // Customer routes
 // ======================

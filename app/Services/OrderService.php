@@ -2,15 +2,20 @@
 
 namespace App\Services;
 
+use App\Contracts\OrderRepositoryInterface;
 use App\Mail\OrderPlaced;
 use App\Models\Cart;
 use App\Models\Order;
-use App\Models\OrderItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
+    public function __construct(private OrderRepositoryInterface $orderRepository)
+    {
+        //
+    }
+
     // ===================================
     // Customer placing order from cart
     // ===================================
@@ -33,14 +38,14 @@ class OrderService
 
         $total = $cartItems->sum(fn ($item) => $item->productVariant->price * $item->quantity);
 
-        $order = Order::create([
+        $order = $this->orderRepository->createOrder([
             'user_id' => $userId,
             'total_price' => $total,
             'status' => 'pending',
         ]);
 
         foreach ($cartItems as $item) {
-            OrderItem::create([
+            $this->orderRepository->createOrderItem([
                 'order_id' => $order->id,
                 'product_variant_id' => $item->product_variant_id,
                 'price' => $item->productVariant->price,
@@ -65,18 +70,12 @@ class OrderService
 
     public function getUserOrders(int $userId)
     {
-        return Order::where('user_id', $userId)
-            ->with(['items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
-            ->latest()
-            ->get();
+        return $this->orderRepository->findByUser($userId);
     }
 
     public function getUserOrder(int $userId, int $orderId): ?Order
     {
-        $order = Order::where('id', $orderId)
-            ->where('user_id', $userId)
-            ->with(['items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
-            ->first();
+        $order = $this->orderRepository->findbyIdAndUser($orderId, $userId);
 
         if (! $order) {
             return null;
@@ -95,9 +94,7 @@ class OrderService
 
     public function getAllOrders()
     {
-        $orders = Order::with(['user', 'items.productVariant.product', 'items.productVariant.attributeValues.attribute'])
-            ->latest()
-            ->get();
+        $orders = $this->orderRepository->getAllOrders();
 
         return $orders->transform(function ($order) {
             $order->placed_at = Carbon::parse($order->created_at)->format('F d, Y h:i A');
@@ -114,7 +111,7 @@ class OrderService
 
     public function getSimilarOrders()
     {
-        $allOrders = Order::with(['items.productVariant'])->get();
+        $allOrders = $this->orderRepository->getSimilarOrders();
 
         $similarOrders = $allOrders->map(function ($order) {
             $similar = $order->items
@@ -138,14 +135,6 @@ class OrderService
 
     public function updateStatus(int $orderId, string $status): ?Order
     {
-        $order = Order::find($orderId);
-
-        if (! $order) {
-            return null;
-        }
-
-        $order->update(['status' => $status]);
-
-        return $order->load(['items.productVariant.product', 'items.productVariant.attributeValues.attribute']);
+        return $this->orderRepository->updateStatus($orderId, $status);
     }
 }

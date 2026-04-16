@@ -2,18 +2,20 @@
 
 namespace App\Services;
 
-use App\Models\Cart;
+use App\Contracts\CartRepositoryInterface;
 use App\Models\ProductVariant;
 
 class CartService
 {
+    public function __construct(private CartRepositoryInterface $cartRepository)
+    {
+        //
+    }
+
     // get current user cart
     public function getCart(int $userId): array
     {
-        $cart = Cart::where('user_id', $userId)
-            ->with('productvariant.product')
-            ->with('productvariant.attributeValues.attribute')
-            ->get();
+        $cart = $this->cartRepository->getCartByUser($userId);
 
         if ($cart->isEmpty()) {
             return ['empty' => true, 'cart' => [], 'total' => 0];
@@ -38,9 +40,7 @@ class CartService
             return ['stock_error' => true];
         }
 
-        $cartItem = Cart::where('user_id', $userId)
-            ->where('product_variant_id', $variantId)
-            ->first();
+        $cartItem = $this->cartRepository->findItem($userId, $variantId);
 
         if ($cartItem) {
             $newQuantity = $cartItem->quantity + $quantity;
@@ -49,7 +49,7 @@ class CartService
                 return ['stock_error' => true];
             }
 
-            $cartItem->update(['quantity' => $newQuantity]);
+            $this->cartRepository->updateItemQuantity($cartItem, $newQuantity);
 
             return [
                 'updated' => true,
@@ -57,11 +57,7 @@ class CartService
             ];
         }
 
-        $cartItem = Cart::create([
-            'user_id' => $userId,
-            'product_variant_id' => $variantId,
-            'quantity' => $quantity,
-        ]);
+        $cartItem = $this->cartRepository->addItem($userId, $variantId, $quantity);
 
         return [
             'updated' => false,
@@ -72,9 +68,7 @@ class CartService
     // update the cart items quantity
     public function updateCart(int $userId, int $cartId, int $quantity): array
     {
-        $cartItem = Cart::where('id', $cartId)
-            ->where('user_id', $userId)
-            ->first();
+        $cartItem = $this->cartRepository->findItemById($userId, $cartId);
 
         if (! $cartItem) {
             return ['not_found' => true];
@@ -87,7 +81,7 @@ class CartService
             return ['stock_error' => true];
         }
 
-        $cartItem->update(['quantity' => $newQuantity]);
+        $this->cartRepository->updateItemQuantity($cartItem, $newQuantity);
 
         return [
             'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
@@ -97,15 +91,13 @@ class CartService
     // remove item from cart
     public function removeItem(int $userId, int $cartId): bool
     {
-        $cartItem = Cart::where('id', $cartId)
-            ->where('user_id', $userId)
-            ->first();
+        $cartItem = $this->cartRepository->findItemById($userId, $cartId);
 
         if (! $cartItem) {
             return false;
         }
 
-        $cartItem->delete();
+        $this->cartRepository->removeItem($cartItem);
 
         return true;
     }
@@ -113,9 +105,7 @@ class CartService
     // decrease item quantity or remove if quantity becomes 0
     public function decreaseQuantity(int $userId, int $cartId, int $quantity): array
     {
-        $cartItem = Cart::where('id', $cartId)
-            ->where('user_id', $userId)
-            ->first();
+        $cartItem = $this->cartRepository->findItemById($userId, $cartId);
 
         if (! $cartItem) {
             return ['not_found' => true];
@@ -124,12 +114,12 @@ class CartService
         $newQuantity = $cartItem->quantity - $quantity;
 
         if ($newQuantity <= 0) {
-            $cartItem->delete();
+            $this->cartRepository->removeItem($cartItem);
 
             return ['removed' => true];
         }
 
-        $cartItem->update(['quantity' => $newQuantity]);
+        $this->cartRepository->updateItemQuantity($cartItem, $newQuantity);
 
         return [
             'removed' => false,
@@ -140,6 +130,6 @@ class CartService
     // clear the cart after order placed
     public function clearCart(int $userId): void
     {
-        Cart::where('user_id', $userId)->delete();
+        $this->cartRepository->clearCart($userId);
     }
 }
