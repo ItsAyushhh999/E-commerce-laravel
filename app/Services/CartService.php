@@ -12,7 +12,8 @@ class CartService
         //
     }
 
-    // get current user cart
+    // fetches the cart items of authenticated users and calculates the total price of the cart. It returns an array containing the cart items, total price, and a flag indicating if the cart is empty.
+
     public function getCart(int $userId): array
     {
         $cart = $this->cartRepository->getCartByUser($userId);
@@ -31,7 +32,8 @@ class CartService
         ];
     }
 
-    // add items to a cart
+    // Adds a product variant to the cart. It checks if the requested quantity is available in stock and either updates the existing cart item or creates a new one. It returns an array indicating whether the item was updated or added, along with the cart item details. If there is a stock error, it returns an array with a 'stock_error' flag set to true.
+
     public function addToCart(int $userId, int $variantId, int $quantity): array
     {
         $variant = ProductVariant::findOrFail($variantId);
@@ -65,7 +67,8 @@ class CartService
         ];
     }
 
-    // update the cart items quantity
+    // Updates the quantity of a specific cart item. It checks if the cart item exists and if the requested quantity is available in stock. If the cart item is not found, it returns an array with a 'not_found' flag set to true. If there is a stock error, it returns an array with a 'stock_error' flag set to true. Otherwise, it updates the cart item quantity and returns the updated cart item details.
+
     public function updateCart(int $userId, int $cartId, int $quantity): array
     {
         $cartItem = $this->cartRepository->findItemById($userId, $cartId);
@@ -88,7 +91,8 @@ class CartService
         ];
     }
 
-    // remove item from cart
+    // Removes a specific item from the cart. It returns true if the item was successfully removed, or false if the cart item was not found.
+
     public function removeItem(int $userId, int $cartId): bool
     {
         $cartItem = $this->cartRepository->findItemById($userId, $cartId);
@@ -102,7 +106,8 @@ class CartService
         return true;
     }
 
-    // decrease item quantity or remove if quantity becomes 0
+    // Decreases the quantity of a specific cart item or removes it if the quantity becomes 0
+
     public function decreaseQuantity(int $userId, int $cartId, int $quantity): array
     {
         $cartItem = $this->cartRepository->findItemById($userId, $cartId);
@@ -127,7 +132,8 @@ class CartService
         ];
     }
 
-    // clear the cart after order placed
+    // Clears all items from the user's cart. It does not return any value.
+
     public function clearCart(int $userId): void
     {
         $this->cartRepository->clearCart($userId);

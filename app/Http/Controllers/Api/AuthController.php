@@ -11,7 +11,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // Register
+    /**
+     * Register a new user and return an access token
+     */
     public function register(Request $request)
     {
         $request->validate([
@@ -36,7 +38,9 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Login
+    /*
+     * Login user and return an access token
+     */
     public function login(Request $request)
     {
         $request->validate([

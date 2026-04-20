@@ -22,18 +22,18 @@ class ProductController extends Controller
         $this->service = $service;
     }
 
-    // =============================
-    // View all products
-    // =============================
+    //
+    // Returns a list of all products with their details and variants for customers
+    //
 
     public function index()
     {
         return response()->json($this->service->getAllProducts());
     }
 
-    // ==================================
-    // View only one product by their id
-    // ==================================
+    //
+    // Returns the details of a specific product along with its variants for customers
+    //
 
     public function show(int $id)
     {
@@ -54,9 +54,9 @@ class ProductController extends Controller
         ]);
     }
 
-    // =============================================================
-    // [Admin] - creating product with variants and multiple images
-    // =============================================================
+    //
+    // Admin - create a new product with its variants and images
+    //
 
     public function store(StoreProductRequest $request)
     {
@@ -78,9 +78,9 @@ class ProductController extends Controller
         ], 201);
     }
 
-    // =============================================================
-    // [Admin] - update product details
-    // =============================================================
+    //
+    // Admin - update product details, add/remove images and update variants
+    //
 
     public function update(UpdateProductRequest $request, int $id)
     {
@@ -102,9 +102,9 @@ class ProductController extends Controller
         ]);
     }
 
-    // ===============================================
-    // [Admin] - update variants stock and price
-    // ===============================================
+    //
+    // Admin - update a specific variant's stock and price
+    //
 
     public function updateVariant(UpdateVariantRequest $request, int $id)
     {
@@ -118,9 +118,9 @@ class ProductController extends Controller
         ]);
     }
 
-    // ==================================
-    // [Admin] - delete product
-    // ==================================
+    //
+    // Admin - delete a product along with its variants and images
+    //
 
     public function destroy(int $id)
     {
@@ -135,9 +135,9 @@ class ProductController extends Controller
         return response()->json(['message' => 'Product deleted successfully']);
     }
 
-    // ===============================================
-    // [Admin] - delete a single image from a product
-    // ===============================================
+    //
+    // Admin - delete a specific image from a product
+    //
 
     public function destroyImage(int $productId, int $imageId)
     {
@@ -152,6 +152,9 @@ class ProductController extends Controller
         return response()->json(['message' => 'Image deleted successfully']);
     }
 
+    //
+    //  Joins the tables and shows the desired details of products
+    //
     public function showDetails()
     {
         $products = DB::table('product_variants as pv')

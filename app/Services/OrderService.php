@@ -16,9 +16,9 @@ class OrderService
         //
     }
 
-    // ===================================
-    // Customer placing order from cart
-    // ===================================
+    //
+    // Customer - place an order from the cart and cart is deleted after rder placed.
+    //
 
     public function placeOrder(int $userId, string $email): array
     {
@@ -64,14 +64,18 @@ class OrderService
         return ['order' => $order];
     }
 
-    // ======================================
-    // Customer - viewing their own order
-    // ======================================
+    //
+    // Customer - can view all of their orders and details
+    //
 
     public function getUserOrders(int $userId)
     {
         return $this->orderRepository->findByUser($userId);
     }
+
+    //
+    // Customer - can view a specific order and details
+    //
 
     public function getUserOrder(int $userId, int $orderId): ?Order
     {
@@ -89,7 +93,7 @@ class OrderService
     }
 
     // ====================================
-    // Admin - view all order
+    // Admin - view orders of all users
     // ====================================
 
     public function getAllOrders()
@@ -105,9 +109,9 @@ class OrderService
         });
     }
 
-    // ====================================
-    // Admin - view similar orders
-    // ====================================
+    //
+    // Admin - view details of the exact same orders created by different users
+    //
 
     public function getSimilarOrders()
     {
@@ -129,9 +133,9 @@ class OrderService
             ->values();
     }
 
-    // =================================
-    // Admin - update order status
-    // =================================
+    //
+    // Admin - updates the status of an order (e.g., pending, shipped, delivered, canceled).
+    //
 
     public function updateStatus(int $orderId, string $status): ?Order
     {

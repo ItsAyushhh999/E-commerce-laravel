@@ -10,9 +10,9 @@ class CartController extends Controller
 {
     public function __construct(private CartService $service) {}
 
-    // ==================================
-    // View entire cart
-    // ==================================
+    //
+    // Returns the cart items for the authenticated user along with total price
+    //
 
     public function index(Request $request)
     {
@@ -29,9 +29,9 @@ class CartController extends Controller
         return response()->json($result);
     }
 
-    // =======================
-    // Add to cart
-    // =======================
+    //
+    // Adds a product variant to the cart or updates quantity if it already exists in the cart
+    //
 
     public function add(Request $request)
     {
@@ -56,9 +56,9 @@ class CartController extends Controller
         ]);
     }
 
-    // ================================
-    // For Updating cart
-    // ================================
+    //
+    // Updates the quantity of a cart item
+    //
 
     public function update(Request $request, $id)
     {
@@ -86,9 +86,9 @@ class CartController extends Controller
         ]);
     }
 
-    // =========================
-    // Removing item
-    // =========================
+    //
+    // Removes an item from the cart
+    //
 
     public function remove(Request $request, $id)
     {
@@ -101,9 +101,9 @@ class CartController extends Controller
         return response()->json(['message' => 'Item removed from cart']);
     }
 
-    // =========================================
-    // Decreasing an item by desired quantity
-    // =========================================
+    //
+    // Decreases the quantity of a cart item or removes it if quantity becomes 0
+    //
 
     public function decreaseQuantity(Request $request, $id)
     {
@@ -131,9 +131,9 @@ class CartController extends Controller
         ]);
     }
 
-    // ================================
-    // Removing entire cart products
-    // ================================
+    //
+    // Clears the entire cart for the authenticated user
+    //
 
     public function clear(Request $request)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Collections\CartCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,5 +22,10 @@ class Cart extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function newCollection(array $models = [])
+    {
+        return new CartCollection($models);
     }
 }

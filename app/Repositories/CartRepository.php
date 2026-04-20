@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\Contracts\CartRepositoryInterface;
 use App\Models\Cart;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class CartRepository implements CartRepositoryInterface
 {

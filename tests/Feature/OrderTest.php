@@ -50,7 +50,7 @@ test('customer can place order from cart', function () {
         ]);
 
     expect($response->json('order.status'))->toBe('pending');
-    expect($response->json('order.total_price'))->toBe(19.98);
+    expect($response->json('order.total_price'))->toBe(22.58);
 });
 
 test('stock is deducted after order placed', function () {

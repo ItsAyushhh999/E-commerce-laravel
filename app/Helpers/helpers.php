@@ -4,7 +4,8 @@ use App\Models\AttributeValue;
 use App\Models\Product;
 use Illuminate\Support\Carbon;
 
-// Format price
+// Formats price to Rs. 1,234.00
+
 if (! function_exists('format_price')) {
     function format_price(float $amount): string
     {
@@ -12,7 +13,8 @@ if (! function_exists('format_price')) {
     }
 }
 
-// Human readable date
+// Date formatting to human readable format
+
 if (! function_exists('human_date')) {
     function human_date($date): string
     {
@@ -20,7 +22,8 @@ if (! function_exists('human_date')) {
     }
 }
 
-// sku generate
+// SKU generation based on product name and attribute values
+
 if (! function_exists('generate_sku')) {
     function generate_sku(Product $product, array $attributeValueIds): string
     {

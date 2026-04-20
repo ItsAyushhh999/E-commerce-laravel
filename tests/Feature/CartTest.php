@@ -84,7 +84,7 @@ test('customer can view their cart', function () {
         ]);
 
     expect(count($response->json('cart')))->toBe(1);
-    expect($response->json('total'))->toBe(19.98);
+    expect($response->json('total'))->toBe(22.58);
 });
 
 test('customer can remove item from cart', function () {

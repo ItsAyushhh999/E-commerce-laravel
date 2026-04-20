@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 
 class AttributeController extends Controller
 {
-    // GET /attributes - list all with values
+    // GET /attributes - gives list of all attributes with their values
+
     public function index()
     {
         return response()->json(
@@ -17,7 +18,8 @@ class AttributeController extends Controller
         );
     }
 
-    // POST /attributes - create new attribute
+    // POST /attributes - [creates a new attribute(llike material, color) with values]
+
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|unique:attributes,name']);
@@ -26,7 +28,8 @@ class AttributeController extends Controller
         return response()->json($attribute, 201);
     }
 
-    // POST /attributes/{attribute}/values - add new value
+    // POST /attributes/{attribute}/values -  [adds a new value to an attribute(like cotton to material)]
+
     public function addValue(Request $request, Attribute $attribute)
     {
         $request->validate(['value' => 'required|string']);
@@ -35,7 +38,8 @@ class AttributeController extends Controller
         return response()->json($value, 201);
     }
 
-    // DELETE /attribute-values/{value} - remove a value
+    // DELETE /attribute-values/{value} - [removes an attribute value]
+
     public function deleteValue(AttributeValue $value)
     {
         $value->delete();

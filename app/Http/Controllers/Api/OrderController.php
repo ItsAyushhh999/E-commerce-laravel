@@ -17,9 +17,9 @@ class OrderController extends Controller
 {
     public function __construct(private OrderService $service, private Mailer $mailer) {}
 
-    // ===================================
-    // Customer placing order from cart
-    // ===================================
+    //
+    // Places an order for the authenticated user based on their cart contents, checks stock, creates order and sends confirmation email
+    //
 
     public function store(Request $request)
     {
@@ -54,9 +54,9 @@ class OrderController extends Controller
         ], 201);
     }
 
-    // ======================================
-    // Customer - viewing their own order
-    // ======================================
+    //
+    // Returns a list of orders for the authenticated user with their details and grouped items by SKU and size
+    //
 
     public function index(Request $request)
     {
@@ -65,9 +65,9 @@ class OrderController extends Controller
         );
     }
 
-    // ==================================
-    // Customer - view single order
-    // ==================================
+    //
+    // Returns the details of a specific order for the authenticated user, including items grouped by SKU and size
+    //
 
     public function show(Request $request, $id)
     {
@@ -95,9 +95,9 @@ class OrderController extends Controller
         ]);
     }
 
-    // ===========================
-    // Admin - view all order
-    // ===========================
+    //
+    // Admin - retrieve all orders with their details and grouped items by SKU and size
+    //
 
     public function adminIndex()
     {
@@ -106,9 +106,9 @@ class OrderController extends Controller
         );
     }
 
-    // =================================
-    // Admin - retrieve similar order
-    // =================================
+    //
+    // Admin - retrieve details of a specific order with items grouped by SKU and size
+    //
 
     public function specificOrder()
     {
@@ -118,9 +118,9 @@ class OrderController extends Controller
         );
     }
 
-    // ===================================
-    // Admin- update order status
-    // ===================================
+    //
+    // Admin - update the status of an order (pending, processing, completed, cancelled)
+    //
 
     public function updateStatus(Request $request, $id)
     {

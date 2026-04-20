@@ -17,11 +17,13 @@ class ProductService
     // Public Methods
     // ======================
 
+    // Returns a list of all products with their details and variants for customers
     public function getAllProducts()
     {
         return $this->repository->all();
     }
 
+    // Returns the details of a specific product along with its variants for customers
     public function getProduct(int $id): ?Product
     {
         return $this->repository->find($id);
