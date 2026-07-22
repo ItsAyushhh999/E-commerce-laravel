@@ -4,13 +4,12 @@ namespace App\Repositories;
 
 use App\Contracts\ProductsRepositoryInterface;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
 
 class ProductsRepository implements ProductsRepositoryInterface
 {
-    public function all(): Collection
+    public function all(int $perPage = 100)
     {
-        return Product::with(['variants.attributeValues.attribute', 'images'])->get();
+        return Product::with(['variants.attributeValues.attribute', 'images'])->paginate($perPage);
     }
 
     public function find(int $id): ?Product

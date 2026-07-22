@@ -18,9 +18,10 @@ class ProductService
     // ======================
 
     // Returns a list of all products with their details and variants for customers
-    public function getAllProducts()
+    // Supports pagination with configurable per_page limit
+    public function getAllProducts(int $perPage = 100)
     {
-        return $this->repository->all();
+        return $this->repository->all($perPage);
     }
 
     // Returns the details of a specific product along with its variants for customers

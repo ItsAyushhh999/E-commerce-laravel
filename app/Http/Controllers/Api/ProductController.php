@@ -24,11 +24,14 @@ class ProductController extends Controller
 
     //
     // Returns a list of all products with their details and variants for customers
+    // Supports pagination with configurable limit (default: 100, max: 1000)
     //
 
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json($this->service->getAllProducts());
+        $perPage = min((int) $request->query('per_page', 100), 1000);
+
+        return response()->json($this->service->getAllProducts($perPage));
     }
 
     //
@@ -201,8 +204,8 @@ class ProductController extends Controller
         ]);
     }
 
-    // GET - /api/search
-    public function search(Request $request)
+    // GET - /api/searching
+    public function searching(Request $request)
     {
         $request->validate([
             'query' => 'required|string|max:255',

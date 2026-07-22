@@ -11,9 +11,11 @@
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.3",
         "laravel/scout": "*",
+        "laravel/telescope": "*",
         "laravel/tinker": "^3.0",
         "laraveldaily/laravel-invoices": "*",
-        "predis/predis": "^3.4"
+        "predis/predis": "^3.4",
+        "stripe/stripe-php": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

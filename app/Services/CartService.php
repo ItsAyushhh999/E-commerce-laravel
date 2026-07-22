@@ -55,7 +55,7 @@ class CartService
 
             return [
                 'updated' => true,
-                'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
+                'cart_item' => $cartItem->load(['productvariant.product']),
             ];
         }
 
@@ -63,7 +63,7 @@ class CartService
 
         return [
             'updated' => false,
-            'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
+            'cart_item' => $cartItem->load(['productvariant.product']),
         ];
     }
 
@@ -87,7 +87,7 @@ class CartService
         $this->cartRepository->updateItemQuantity($cartItem, $newQuantity);
 
         return [
-            'cart_item' => $cartItem->load(['productvariant.product', 'productvariant.attributeValues.attribute']),
+            'cart_item' => $cartItem->load(['productvariant.product']),
         ];
     }
 
@@ -128,7 +128,7 @@ class CartService
 
         return [
             'removed' => false,
-            'cart_item' => $cartItem->load(['productVariant.product', 'productVariant.attributeValues.attribute']),
+            'cart_item' => $cartItem->load(['productVariant.product']),
         ];
     }
 

@@ -11,7 +11,7 @@ class CartRepository implements CartRepositoryInterface
     public function getCartByUser(int $userId): Collection
     {
         return Cart::where('user_id', $userId)
-            ->with(['productVariant.product', 'productVariant.attributeValues.attribute'])
+            ->with(['productVariant.product'])
             ->get();
     }
 

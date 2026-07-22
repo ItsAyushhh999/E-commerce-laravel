@@ -31,22 +31,23 @@ test('customer can place order from cart', function () {
     Sanctum::actingAs($this->customer);
 
     // Add to cart first
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $response = $this->postJson('/api/orders');
+    $response = $this->postJson('/api/v1/orders');
 
     $response->assertStatus(201)
-        ->assertJson(['message' => 'Order placed successfully.'])
+        ->assertJson(['message' => 'Order created. Complete payment to confirm.'])
         ->assertJsonStructure([
-            'order' => [
-                'id',
-                'total_price',
-                'status',
-                'items',
-            ],
+            'message',
+            'order_id',
+            'status',
+            'client_secret',
+            'amount',
+            'currency',
+            'placed_at',
         ]);
 
     expect($response->json('order.status'))->toBe('pending');
@@ -56,12 +57,12 @@ test('customer can place order from cart', function () {
 test('stock is deducted after order placed', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 3,
     ]);
 
-    $this->postJson('/api/orders');
+    $this->postJson('/api/v1/orders');
 
     $this->variant->refresh();
     expect($this->variant->stock)->toBe(7);
@@ -70,14 +71,14 @@ test('stock is deducted after order placed', function () {
 test('cart is cleared after order placed', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $this->postJson('/api/orders');
+    $this->postJson('/api/v1/orders');
 
-    $response = $this->getJson('/api/cart');
+    $response = $this->getJson('/api/v1/cart');
     expect(count($response->json('cart')))->toBe(0);
 });
 
@@ -85,7 +86,7 @@ test('customer cannot place order with empty cart', function () {
     $freshCustomer = User::factory()->create(['role' => 'customer']);
     Sanctum::actingAs($freshCustomer);
 
-    $response = $this->postJson('/api/orders');
+    $response = $this->postJson('/api/v1/orders');
 
     $response->assertStatus(400)
         ->assertJson(['message' => 'Your cart is empty']);
@@ -94,13 +95,13 @@ test('customer cannot place order with empty cart', function () {
 test('customer can view their orders', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 1,
     ]);
-    $this->postJson('/api/orders');
+    $this->postJson('/api/v1/orders');
 
-    $response = $this->getJson('/api/orders');
+    $response = $this->getJson('/api/v1/orders');
 
     $response->assertStatus(200);
     expect(count($response->json()))->toBe(1);
@@ -109,15 +110,15 @@ test('customer can view their orders', function () {
 test('customer can view single order', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 1,
     ]);
-    $this->postJson('/api/orders');
+    $this->postJson('/api/v1/orders');
 
-    $orderId = $this->getJson('/api/orders')->json('0.id');
+    $orderId = $this->getJson('/api/v1/orders')->json('0.id');
 
-    $response = $this->getJson("/api/orders/{$orderId}");
+    $response = $this->getJson("/api/v1/orders/{$orderId}");
 
     $response->assertStatus(200);
     expect($response->json('order.id'))->toBe($orderId);
@@ -130,7 +131,7 @@ test('customer can view single order', function () {
 test('admin can view all orders', function () {
     Sanctum::actingAs($this->admin);
 
-    $response = $this->getJson('/api/admin/orders');
+    $response = $this->getJson('/api/v1/admin/orders');
 
     $response->assertStatus(200);
 });
@@ -138,17 +139,17 @@ test('admin can view all orders', function () {
 test('admin can update order status', function () {
     // Place order as customer
     Sanctum::actingAs($this->customer);
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 1,
     ]);
-    $this->postJson('/api/orders');
-    $orderId = $this->getJson('/api/orders')->json('0.id');
+    $this->postJson('/api/v1/orders');
+    $orderId = $this->getJson('/api/v1/orders')->json('0.id');
 
     // Switch to admin - use actingAs with guard specified
     $this->actingAs($this->admin, 'sanctum');
 
-    $response = $this->putJson("/api/admin/orders/{$orderId}", [
+    $response = $this->putJson("/api/v1/admin/orders/{$orderId}", [
         'status' => 'processing',
     ]);
 
@@ -158,16 +159,16 @@ test('admin can update order status', function () {
 
 test('admin cannot set invalid order status', function () {
     Sanctum::actingAs($this->customer);
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 1,
     ]);
-    $this->postJson('/api/orders');
-    $orderId = $this->getJson('/api/orders')->json('0.id');
+    $this->postJson('/api/v1/orders');
+    $orderId = $this->getJson('/api/v1/orders')->json('0.id');
 
     $this->actingAs($this->admin, 'sanctum');
 
-    $response = $this->putJson("/api/admin/orders/{$orderId}", [
+    $response = $this->putJson("/api/v1/admin/orders/{$orderId}", [
         'status' => 'invalid_status',
     ]);
 
@@ -181,24 +182,24 @@ test('admin cannot set invalid order status', function () {
 test('customer cannot view another customers order', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 1,
     ]);
-    $this->postJson('/api/orders');
-    $orderId = $this->getJson('/api/orders')->json('0.id');
+    $this->postJson('/api/v1/orders');
+    $orderId = $this->getJson('/api/v1/orders')->json('0.id');
 
     // login as different customer
     $otherCustomer = User::factory()->create(['role' => 'customer']);
     Sanctum::actingAs($otherCustomer);
 
-    $response = $this->getJson("/api/orders/{$orderId}");
+    $response = $this->getJson("/api/v1/orders/{$orderId}");
 
     $response->assertStatus(404);
 });
 
 test('unauthenticated user cannot place order', function () {
-    $response = $this->postJson('/api/orders');
+    $response = $this->postJson('/api/v1/orders');
 
     $response->assertStatus(401);
 });

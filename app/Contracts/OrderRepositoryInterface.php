@@ -18,4 +18,8 @@ interface OrderRepositoryInterface
     public function getSimilarOrders(): Collection;
 
     public function updateStatus(int $orderId, string $status): ?Order;
+
+    public function find(int $orderId): ?Order;
+
+    public function findExpiredPendingOrders(): Collection;
 }

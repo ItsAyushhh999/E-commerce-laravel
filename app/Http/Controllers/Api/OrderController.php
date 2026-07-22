@@ -4,18 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\ProductVariant;
 use App\Services\OrderService;
+use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use LaravelDaily\Invoices\Classes\Buyer;          // vendor imports
-use LaravelDaily\Invoices\Classes\InvoiceItem;    // vendor imports
-use LaravelDaily\Invoices\Invoice;                // vendor imports
+use LaravelDaily\Invoices\Classes\Buyer;
+use LaravelDaily\Invoices\Classes\InvoiceItem;
+use LaravelDaily\Invoices\Invoice;
+use Stripe\Exception\ApiErrorException;
 
 class OrderController extends Controller
 {
-    public function __construct(private OrderService $service, private Mailer $mailer) {}
+    public function __construct(private OrderService $service,
+        private Mailer $mailer,
+        private StripeService $stripeService
+    ) {}
 
     //
     // Places an order for the authenticated user based on their cart contents, checks stock, creates order and sends confirmation email
@@ -23,6 +30,17 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        $idempotencyKey = $request->header('Idempotency-Key');
+
+        if ($idempotencyKey) {
+            $cacheKey = "idempotency:order:{$idempotencyKey}";
+            $cached = Cache::get($cacheKey);
+
+            if ($cached) {
+                return response()->json($cached, 201);
+            }
+        }
+
         $result = $this->service->placeOrder(
             $request->user()->id,
             $request->user()->email
@@ -40,18 +58,89 @@ class OrderController extends Controller
 
         $order = $result['order'];
 
-        // New macro method — never existed on Mailer before
-        $this->mailer->sendOrderConfirmation(
-            $request->user()->email,
-            $order
+        // Create PaymentIntent — amount in cents
+        $paymentIntent = $this->stripeService->createPaymentIntent(
+            amountInCents: (int) round($order->total_price * 100),
+            metadata: [
+                'order_id' => $order->id,
+                'email' => $request->user()->email,
+            ]
         );
 
-        return response()->json([
-            'message' => 'Order placed successfully.',
-            'order' => $order,
+        // Store PaymentIntent ID on order
+        $order->update([
+            'stripe_payment_intent_id' => $paymentIntent->id,
+        ]);
+
+        $responseData = [
+            'message' => 'Order created. Complete payment to confirm.',
+            'order' => [
+                'id' => $order->id,
+                'status' => $order->status,
+                'total_price' => $order->total_price,
+            ],
+            'order_id' => $order->id,
+            'status' => $order->status,
+            'client_secret' => $paymentIntent->client_secret,
+            'amount' => $order->total_price,
+            'currency' => 'usd',
             'placed_at' => Carbon::parse($order->created_at)->format('F d, Y h:i A'),
-            'estimated_delivery' => Carbon::now()->addDays(7)->format('F d, Y'),
-        ], 201);
+        ];
+
+        if ($idempotencyKey) {
+            Cache::put($cacheKey, $responseData, now()->addHours(24));
+        }
+
+        return response()->json($responseData, 201);
+    }
+
+    //
+    // Customer/Admin - refund a completed order, restock items, and update status
+    //
+    public function refund(Request $request, $id)
+    {
+        $isAdmin = $request->user()->is_admin ?? false; // adjust based on your auth setup
+
+        $result = $this->service->refundOrder($id, $request->user()->id, $isAdmin);
+
+        if (isset($result['not_found'])) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        if (isset($result['invalid_status'])) {
+            return response()->json(['message' => 'Only completed orders can be refunded'], 400);
+        }
+
+        $order = $result['order'];
+
+        try {
+            $refund = $this->stripeService->refund($order->stripe_payment_intent_id);
+        } catch (ApiErrorException $e) {
+            return response()->json(['message' => 'Refund failed: '.$e->getMessage()], 400);
+        }
+
+        $this->service->markAsRefunded($order);
+
+        return response()->json([
+            'message' => 'Refund issued successfully',
+            'refund_id' => $refund->id,
+            'order_id' => $order->id,
+        ]);
+    }
+
+    public function statusHistory(Request $request, $id)
+    {
+        $order = $this->service->getUserOrder($request->user()->id, $id);
+
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        return response()->json([
+            'order_id' => $order->id,
+            'current_status' => $order->status,
+            'history' => $order->statusHistories()->orderBy('created_at')->get(),
+        ]);
     }
 
     //
@@ -203,5 +292,41 @@ class OrderController extends Controller
             ->addItems($invoiceItems);
 
         return $invoice->download("invoice-order-{$order->id}.pdf");
+    }
+
+    public function employees(Request $request)
+    {
+        $products = ProductVariant::with(['product', 'orderItems.order'])
+            ->when($request->filled('name'), fn ($q) => $q->whereHas('product', fn ($pq) => $pq->where('name', 'like', '%'.$request->name.'%')))
+            ->when($request->filled('from'), fn ($q) => $q->where('created_at', '>=', $request->from))
+            ->when($request->filled('to'), fn ($q) => $q->where('created_at', '<=', $request->to))
+            ->orderBy('created_at', 'DESC')
+            ->paginate(250);
+
+        return response()->json([
+            'data' => $products,
+        ]);
+    }
+
+    public function optimiz(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string',
+        ]);
+
+        $orders = Order::with(['user', 'items'])
+            ->where('user.id', $request->search)
+            ->orWhere('tasks.title', 'like', '%'.$request->search.'%')
+            ->orWhere('tasks.description', 'like', '%'.$request->search.'%')
+            ->orWhereHas('comments', function ($query) use ($request) {
+                $query->where('comments', 'like', '%'.$request->search.'%');
+            })
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->from))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->to))
+            ->select('tasks.id', 'tasks.title', 'tasks.description', 'tasks.project_id', 'tasks.status', 'tasks.priority')
+            ->orderBy('created_at', 'desc')
+            ->paginate(250);
+
+        return response()->json($orders);
     }
 }

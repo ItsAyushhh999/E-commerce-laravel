@@ -46,7 +46,7 @@ beforeEach(function () {
 // ===========================
 
 test('anyone can view all products', function () {
-    $response = $this->getJson('/api/products');
+    $response = $this->getJson('/api/v1/products');
 
     $response->assertStatus(200);
 });
@@ -54,14 +54,14 @@ test('anyone can view all products', function () {
 test('anyone can view single product', function () {
     $product = Product::factory()->create();
 
-    $response = $this->getJson("/api/products/{$product->id}");
+    $response = $this->getJson("/api/v1/products/{$product->id}");
 
     $response->assertStatus(200);
     expect($response->json('id'))->toBe($product->id);
 });
 
 test('returns 404 for non existing product', function () {
-    $response = $this->getJson('/api/products/99999');
+    $response = $this->getJson('/api/v1/products/99999');
 
     $response->assertStatus(404);
 });
@@ -73,7 +73,7 @@ test('returns 404 for non existing product', function () {
 test('admin can create product with variants', function () {
     Sanctum::actingAs($this->admin);
 
-    $response = $this->postJson('/api/products', $this->productData);
+    $response = $this->postJson('/api/v1/products', $this->productData);
 
     $response->assertStatus(201)
         ->assertJsonStructure([
@@ -92,7 +92,7 @@ test('admin can create product with variants', function () {
 test('admin cannot create product with missing fields', function () {
     Sanctum::actingAs($this->admin);
 
-    $response = $this->postJson('/api/products', [
+    $response = $this->postJson('/api/v1/products', [
         'name' => 'Basic Tshirt',
         // missing variants
     ]);
@@ -103,13 +103,13 @@ test('admin cannot create product with missing fields', function () {
 test('customer cannot create product', function () {
     Sanctum::actingAs($this->customer);
 
-    $response = $this->postJson('/api/products', $this->productData);
+    $response = $this->postJson('/api/v1/products', $this->productData);
 
     $response->assertStatus(403);
 });
 
 test('unauthenticated user cannot create product', function () {
-    $response = $this->postJson('/api/products', $this->productData);
+    $response = $this->postJson('/api/v1/products', $this->productData);
 
     $response->assertStatus(401);
 });
@@ -123,7 +123,7 @@ test('admin can update product', function () {
 
     $product = Product::factory()->create();
 
-    $response = $this->putJson("/api/products/{$product->id}", [
+    $response = $this->putJson("/api/v1/products/{$product->id}", [
         'name' => 'Updated Tshirt',
     ]);
 
@@ -136,7 +136,7 @@ test('customer cannot update product', function () {
 
     $product = Product::factory()->create();
 
-    $response = $this->putJson("/api/products/{$product->id}", [
+    $response = $this->putJson("/api/v1/products/{$product->id}", [
         'name' => 'Updated Tshirt',
     ]);
 
@@ -152,7 +152,7 @@ test('admin can delete product', function () {
 
     $product = Product::factory()->create();
 
-    $response = $this->deleteJson("/api/products/{$product->id}");
+    $response = $this->deleteJson("/api/v1/products/{$product->id}");
 
     $response->assertStatus(200);
     expect(Product::find($product->id))->toBeNull();
@@ -163,7 +163,7 @@ test('customer cannot delete product', function () {
 
     $product = Product::factory()->create();
 
-    $response = $this->deleteJson("/api/products/{$product->id}");
+    $response = $this->deleteJson("/api/v1/products/{$product->id}");
 
     $response->assertStatus(403);
 });

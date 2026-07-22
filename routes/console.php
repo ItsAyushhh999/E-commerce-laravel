@@ -13,3 +13,8 @@ Artisan::command('inspire', function () {
 Schedule::job(new UpdateOrderStatuses)
     ->dailyAt('01:00')
     ->description('Update order statuses (pending→processing→completed, with random cancellations)');
+
+Schedule::command('db:create-yearly-partition orders')
+    ->yearlyOn(1, 1, '00:00');
+
+Schedule::command('orders:expire')->everyFiveMinutes();

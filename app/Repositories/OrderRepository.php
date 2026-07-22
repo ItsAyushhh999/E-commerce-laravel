@@ -59,4 +59,17 @@ class OrderRepository implements OrderRepositoryInterface
 
         return $order->load(['items.productVariant.product', 'items.productVariant.attributeValues.attribute']);
     }
+
+    public function find(int $orderId): ?Order
+    {
+        return Order::find($orderId);
+    }
+
+    public function findExpiredPendingOrders(): Collection
+    {
+        return Order::where('status', 'pending')
+            ->where('expires_at', '<', now())
+            ->with('items.productVariant')
+            ->get();
+    }
 }

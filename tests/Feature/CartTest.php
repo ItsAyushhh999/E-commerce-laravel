@@ -25,7 +25,7 @@ beforeEach(function () {
 test('customer can add item to cart', function () {
     Sanctum::actingAs($this->customer);
 
-    $response = $this->postJson('/api/cart', [
+    $response = $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
@@ -39,12 +39,12 @@ test('customer can add item to cart', function () {
 test('adding same item increases quantity', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $response = $this->postJson('/api/cart', [
+    $response = $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 3,
     ]);
@@ -58,7 +58,7 @@ test('adding same item increases quantity', function () {
 test('customer cannot add more than available stock', function () {
     Sanctum::actingAs($this->customer);
 
-    $response = $this->postJson('/api/cart', [
+    $response = $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 9999,
     ]);
@@ -70,12 +70,12 @@ test('customer cannot add more than available stock', function () {
 test('customer can view their cart', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $response = $this->getJson('/api/cart');
+    $response = $this->getJson('/api/v1/cart');
 
     $response->assertStatus(200)
         ->assertJsonStructure([
@@ -90,14 +90,14 @@ test('customer can view their cart', function () {
 test('customer can remove item from cart', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $cartItemId = $this->getJson('/api/cart')->json('cart.0.id');
+    $cartItemId = $this->getJson('/api/v1/cart')->json('cart.0.id');
 
-    $response = $this->deleteJson("/api/cart/{$cartItemId}");
+    $response = $this->deleteJson("/api/v1/cart/{$cartItemId}");
 
     $response->assertStatus(200)
         ->assertJson(['message' => 'Item removed from cart']);
@@ -106,12 +106,12 @@ test('customer can remove item from cart', function () {
 test('customer can clear entire cart', function () {
     Sanctum::actingAs($this->customer);
 
-    $this->postJson('/api/cart', [
+    $this->postJson('/api/v1/cart', [
         'product_variant_id' => $this->variant->id,
         'quantity' => 2,
     ]);
 
-    $response = $this->deleteJson('/api/cart');
+    $response = $this->deleteJson('/api/v1/cart');
 
     $response->assertStatus(200)
         ->assertJson(['message' => 'Cart cleared']);
@@ -122,7 +122,7 @@ test('customer can clear entire cart', function () {
 // =============================================================
 
 test('unauthenticated user cannot access cart', function () {
-    $response = $this->getJson('/api/cart');
+    $response = $this->getJson('/api/v1/cart');
 
     $response->assertStatus(401);
 });
