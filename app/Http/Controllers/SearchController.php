@@ -85,7 +85,6 @@ class SearchController extends Controller
     {
         $request->validate([
             'search' => ['required', 'max:255'],
-            'type' => ['required', 'in:products,variants,attributes,orders'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
         ]);
